@@ -1,1282 +1,1218 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-ui-key="TITLE">Game Tebak Suara Objek Tangan</title>
-    <!-- Load Tailwind CSS for responsive styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-    <style>
-        /* Menggunakan font kartun yang lucu */
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700;900&display=swap');
-        
-        body {
-            font-family: 'Fredoka', cursive;
-            background: linear-gradient(135deg, #fceb0f 0%, #ff8c42 100%); /* Gradien cerah */
-            min-height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            margin: 0;
-        }
+  <meta charset="UTF-8" />
+  <title>CodeQuest: Petualangan Computational Thinking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --accent-2: #a855f7;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.7);
+    }
 
-        #game-container {
-            position: relative;
-            width: 95vw;
-            height: 95vh;
-            max-width: 1200px;
-            max-height: 800px;
-            border-radius: 30px;
-            overflow: hidden;
-            background: #ffffff;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-        }
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-        #webcam-feed {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; 
-            transform: scaleX(-1); 
-            display: block;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #1d283a, #020617);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
 
-        #control-panel {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 10%; 
-            background: rgba(43, 43, 43, 0.9); 
-            backdrop-filter: blur(2px);
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: space-around; 
-            padding: 10px 20px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
-        
-        /* Area Status/Tebakan di atas video */
-        #status-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 12%; 
-            background: none; 
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
-            padding: 10px 20px;
-        }
-        
-        /* Kontainer Countdown & Hint (BARU: Lebih Kecil, Top Paling Atas) */
-        #top-center-container {
-            position: absolute;
-            top: 20px; /* Posisikan dekat atas */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 25;
-            width: 90%;
-            max-width: 900px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            pointer-events: none; 
-        }
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      background: linear-gradient(145deg, #020617 0%, #020617 30%, #020617 100%);
+      border-radius: 24px;
+      padding: 24px 24px 32px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
 
-        /* Kontainer Countdown Kecil */
-        #countdown-wrapper {
-            background-color: white;
-            border-radius: 15px;
-            padding: 8px 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
-        /* Style KHUSUS untuk Angka Hitungan Mundur (LEBIH KECIL) */
-        #countdown-display {
-            font-size: 2rem; 
-            line-height: 1;
-            font-weight: 900;
-            background: linear-gradient(90deg, #4f46e5, #818cf8); 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: #4f46e5; 
-            animation: pulse-small 1s infinite alternate; 
-        }
-        
-        #countdown-display.urgent {
-             background: linear-gradient(90deg, #f53d3d, #ff8c8c);
-        }
-        
-        @keyframes pulse-small {
-            from { transform: scale(1); }
-            to { transform: scale(1.03); }
-        }
+    .title-block h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
+    .title-pill {
+      font-size: 0.8rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
 
-        .info-box {
-            background: rgba(0, 0, 0, 0.3); 
-            padding: 8px 12px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-        .info-box .text-gray-500 {
-            color: #d1d5da; 
-        }
-        .info-box .text-green-600 {
-            color: #4ade80; 
-        }
+    .subtitle {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
 
-        /* Style Teks Status (Umum) */
-        .colorful-status-text {
-            display: block;
-            text-align: center;
-            font-size: 3rem; 
-            line-height: 1;
-            font-weight: 900;
-            
-            @media (min-width: 640px) { 
-                font-size: 4rem;
-            }
-            @media (min-width: 1024px) { 
-                font-size: 5rem; 
-            }
-            
-            background: linear-gradient(90deg, #38A169, #9AE6B4); 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: #38A169; 
-            text-shadow: 0 3px 10px rgba(56, 161, 105, 0.4); 
-        }
-        
-        /* BARU/MODIFIKASI: Kotak Container untuk Hint Hangman (Oranye) */
-        #hint-box-container {
-            padding: 10px 20px;
-            background: #f97316; /* Orange-600 */
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.5);
-            margin-top: 15px;
-            border: 3px solid #ea580c; /* Darker orange border */
-        }
-        
-        /* Style KHUSUS untuk Tampilan Hint Hangman - inside the orange box */
-        #hint-display {
-             color: white; /* Text inside orange box should be white */
-             font-size: 2.5rem; 
-             letter-spacing: 0.5em; 
-             font-weight: 700;
-             line-height: 1.2;
-             padding: 0;
-             margin: 0;
-             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Overlay untuk umpan balik (centang/silang) */
-        #feedback-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 30;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
 
-        .feedback-icon {
-            font-size: 15vw; 
-            text-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            line-height: 1;
-        }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
 
-        .feedback-text {
-            font-size: 5vw;
-            font-weight: 700;
-            text-shadow: 2px 2px 5px #000000;
-            margin-top: 10px;
-            line-height: 1;
-        }
+    .energy-bar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 180px;
+    }
 
-        .listening-dot {
-            animation: blink 1s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        /* Animasi Emoticon Sedih Bergerak (Timeout) */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-        
-        .sad-moving-icon {
-            animation: shake 0.5s infinite;
-            font-size: 15vw; 
-        }
+    .energy-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
 
-        .chance-circle {
-            fill: #ef4444; 
-            transition: fill 0.3s ease-in-out;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-            border-radius: 50%; 
-        }
-        .chance-circle.active {
-            fill: #10B981; 
-        }
-        
-        /* Tombol */
-        .control-button {
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            box-shadow: 0 5px 0 0 #4b5563;
-            transition: all 0.1s;
-        }
+    .energy-bar {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      overflow: hidden;
+      position: relative;
+    }
 
-        .control-button:active {
-            box-shadow: 0 2px 0 0 #4b5563;
-            transform: translateY(3px);
-        }
+    .energy-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+      transition: width 0.25s ease-out;
+    }
 
-    </style>
+    .energy-value {
+      font-size: 0.85rem;
+      min-width: 34px;
+      text-align: right;
+      color: var(--text);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      transition: all 0.18s ease-out;
+    }
+
+    .btn:hover {
+      background: rgba(22, 163, 255, 0.12);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top left, var(--accent), var(--accent-2));
+      border: none;
+      color: #0b1120;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px) translateX(0.5px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+    }
+
+    .btn-small {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 2fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 880px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.07), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.07), transparent 45%),
+                  var(--card);
+      border-radius: var(--radius-xl);
+      padding: 16px 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-subtitle {
+      margin: 0 0 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .avatar-card {
+      padding: 10px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(250, 250, 250, 0.06), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+    }
+
+    .avatar-card:hover::before {
+      opacity: 1;
+    }
+
+    .avatar-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.2), rgba(15, 23, 42, 0.96));
+    }
+
+    .avatar-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .avatar-role {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .avatar-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .section-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .zones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .zone-card {
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.9);
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .zone-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.18s ease-out;
+    }
+
+    .zone-card:hover::before {
+      opacity: 1;
+    }
+
+    .zone-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .zone-tagline {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .zone-tag {
+      font-size: 0.7rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .challenge-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .challenge-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .challenge-body {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .challenge-block {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .challenge-block h4 {
+      margin: 0 0 6px;
+      font-size: 0.9rem;
+    }
+
+    .options-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .options-list li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    select, textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: #020617;
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    .challenge-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .feedback {
+      font-size: 0.82rem;
+      margin-top: 6px;
+    }
+
+    .feedback.success {
+      color: var(--success);
+    }
+
+    .feedback.error {
+      color: var(--danger);
+    }
+
+    .feedback.hint {
+      color: var(--accent);
+    }
+
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .tag-domain {
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .pill-small {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .report-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      z-index: 20;
+    }
+
+    .report-modal {
+      width: 100%;
+      max-width: 650px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.98));
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .report-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .report-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .report-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      padding: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.8rem;
+    }
+
+    .report-card h4 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+    }
+
+    .report-level {
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+    }
+
+    .report-level span {
+      font-weight: 600;
+    }
+
+    .report-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.3);
+      margin: 16px 0 12px;
+    }
+
+    .empty-state {
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+    }
+  </style>
 </head>
 <body>
-
-    <!-- Overlay Loading Awal -->
-    <div id="loading-overlay" class="fixed inset-0 flex items-center justify-center bg-yellow-400/90 z-50 transition-opacity duration-500">
-        <div class="p-8 rounded-xl flex flex-col items-center">
-            <svg class="animate-spin h-20 w-20 text-orange-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p id="loading-text" data-ui-key="LOADING_TEXT" class="text-3xl font-bold text-gray-800">
-                Memuat kamera dan mikrofon...
-            </p>
+  <div class="app">
+    <header>
+      <div class="title-block">
+        <div class="title-pill">
+          <span>🧠</span><span>Computational Thinking Adventure</span>
         </div>
+        <h1>CodeQuest</h1>
+        <p class="subtitle">Game individu bergaya Roblox-lite untuk melatih decomposition, pattern, algoritma, dan debugging.</p>
+      </div>
+      <div class="status-bar">
+        <div class="badge">
+          <span>🎮</span>
+          <span id="status-avatar">Belum pilih avatar</span>
+        </div>
+        <div class="energy-bar-wrapper">
+          <span class="energy-label">Energi</span>
+          <div class="energy-bar">
+            <div class="energy-fill" id="energyFill"></div>
+          </div>
+          <span class="energy-value" id="energyValue">20</span>
+        </div>
+        <button class="btn btn-ghost btn-small" id="openReportBtn">📊 Lihat Report</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Left: Avatar + Zones -->
+      <section class="panel">
+        <h2>1. Pilih Avatar</h2>
+        <p class="panel-subtitle">Setiap avatar punya gaya berbeda, tapi semua punya kesempatan belajar yang sama.</p>
+        <div class="avatar-grid" id="avatarGrid">
+          <div class="avatar-card" data-avatar="Explorer">
+            <div class="avatar-name">🧭 Explorer</div>
+            <div class="avatar-role">Suka menjelajah dan mencoba tantangan baru.</div>
+            <div class="avatar-tag">Fokus: Keberanian mencoba ulang</div>
+          </div>
+          <div class="avatar-card" data-avatar="Scientist">
+            <div class="avatar-name">🧪 Scientist</div>
+            <div class="avatar-role">Mengamati pola dan mencatat hasil percobaan.</div>
+            <div class="avatar-tag">Fokus: Mengamati pola</div>
+          </div>
+          <div class="avatar-card" data-avatar="Builder">
+            <div class="avatar-name">🏗️ Builder</div>
+            <div class="avatar-role">Menyusun langkah-langkah seperti membangun bangunan.</div>
+            <div class="avatar-tag">Fokus: Menyusun langkah</div>
+          </div>
+          <div class="avatar-card" data-avatar="Coder">
+            <div class="avatar-name">💻 Coder</div>
+            <div class="avatar-role">Menulis algoritma dan memperbaiki bug.</div>
+            <div class="avatar-tag">Fokus: Debugging</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <h2>2. Pilih Zona</h2>
+        <p class="panel-subtitle">Masuk ke salah satu zona di Pulau Logika dan selesaikan tantangannya.</p>
+        <div class="zones" id="zones">
+          <div class="zone-card" data-challenge="decomposition">
+            <div class="zone-name">🏡 Kampung Puzzle</div>
+            <div class="zone-tagline">Pecah masalah besar jadi langkah-langkah kecil.</div>
+            <div class="zone-tag">Decomposition</div>
+          </div>
+          <div class="zone-card" data-challenge="pattern">
+            <div class="zone-name">🌲 Hutan Pola</div>
+            <div class="zone-tagline">Cari dan teruskan pola warna dan gerak.</div>
+            <div class="zone-tag">Pattern Recognition</div>
+          </div>
+          <div class="zone-card" data-challenge="algorithm">
+            <div class="zone-name">⛰️ Lembah Algoritma</div>
+            <div class="zone-tagline">Susun algoritma agar avatar sampai tujuan.</div>
+            <div class="zone-tag">Algorithmic Thinking</div>
+          </div>
+          <div class="zone-card" data-challenge="debugging">
+            <div class="zone-name">🔬 Laboratorium Debug</div>
+            <div class="zone-tagline">Cari dan perbaiki langkah yang salah.</div>
+            <div class="zone-tag">Debugging</div>
+          </div>
+        </div>
+        <p class="panel-subtitle" style="margin-top:10px;font-size:0.78rem;">
+          Catatan: Setiap tantangan yang berhasil memberi +5 energi. Jika dalam 1 tantangan kamu 3× gagal, energi berkurang -3 tapi kamu dapat hint tambahan.
+        </p>
+      </section>
+
+      <!-- Right: Challenge Area -->
+      <section class="panel" id="challengePanel">
+        <div class="challenge-header">
+          <div>
+            <div class="challenge-title" id="challengeTitle">Belum ada tantangan aktif</div>
+            <div class="chip" id="challengeDomainChip">Pilih zona untuk mulai bermain.</div>
+          </div>
+          <div>
+            <span class="pill-small" id="attemptInfo">Percobaan: 0 / 3</span>
+          </div>
+        </div>
+        <p class="challenge-body" id="challengeBody">
+          Pilih zona di sebelah kiri untuk memulai tantangan Computational Thinking. Kamu akan mendapatkan feedback setiap kali mencoba.
+        </p>
+        <div id="challengeContent">
+          <div class="empty-state">
+            💡 Tips: Mulailah dari <b>Kampung Puzzle</b> untuk belajar mengurai masalah, atau <b>Hutan Pola</b> untuk mencari pola berulang.
+          </div>
+        </div>
+        <div class="challenge-footer">
+          <span class="feedback" id="feedbackMsg"></span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-small btn-ghost" id="resetChallengeBtn">↺ Reset Tantangan</button>
+            <button class="btn btn-small btn-primary" id="submitChallengeBtn">✅ Cek Jawaban</button>
+          </div>
+        </div>
+      </section>
     </div>
-    
-    <!-- Kontainer Utama Game -->
-    <div id="game-container">
-        <canvas id="snapshot-canvas" class="hidden"></canvas> 
-        <video id="webcam-feed" autoplay playsinline class="hidden"></video>
-        
-        <!-- Status Area (Top - Score and Chances) -->
-        <div id="status-area">
-            
-            <!-- 1. Tampilan Skor -->
-            <div class="info-box flex flex-col items-start">
-                <div data-ui-key="SCORE_TITLE" class="text-lg font-semibold text-gray-500">Skor Anda:</div>
-                <div id="score-display" class="text-4xl font-bold text-green-600 mt-1">0</div>
-            </div>
+  </div>
 
-            <!-- 2. Indikator Mendengarkan / Mendeteksi -->
-            <div id="listening-indicator" class="flex items-center space-x-2 p-3 rounded-full bg-blue-500 shadow-xl hidden">
-                <span class="w-4 h-4 bg-white rounded-full inline-block listening-dot"></span>
-                <span id="listening-text" class="text-white font-semibold text-xl" data-ui-key="LISTENING">Mendengarkan...</span>
-            </div>
-            
-             <!-- 3. Tampilan Visual Kesempatan Menjawab -->
-            <div class="info-box flex flex-col items-end">
-                <div data-ui-key="ATTEMPTS_LEFT_TITLE" class="text-lg font-semibold text-gray-500">Sisa Kesempatan:</div>
-                <div id="chance-circles-display" class="flex space-x-2 mt-1">
-                    <svg class="w-6 h-6 chance-circle" id="chance-1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>
-                    <svg class="w-6 h-6 chance-circle" id="chance-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>
-                    <svg class="w-6 h-6 chance-circle" id="chance-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>
-                </div>
-            </div>
+  <!-- Report Modal -->
+  <div class="report-overlay" id="reportOverlay">
+    <div class="report-modal">
+      <div class="report-header">
+        <div>
+          <div class="report-title">Report Computational Thinking</div>
+          <div class="report-subtitle" id="reportSubtitle">
+            Ringkasan progres berdasarkan tantangan yang sudah kamu selesaikan.
+          </div>
         </div>
-
-        <!-- Top Center Container (Countdown KECIL & Hint & Main Status di bagian bawah) -->
-        <div id="top-center-container">
-            
-             <!-- Countdown Timer (KECIL) -->
-             <div id="countdown-wrapper" class="hidden">
-                <span data-ui-key="COUNTDOWN_LABEL" class="text-gray-700 font-semibold mr-2">Waktu Tersisa:</span>
-                <div id="countdown-display" class="colorful-status-text">10</div>
-             </div>
-
-             <!-- Tampilan Hint Hangman (BARU: Dibungkus Kotak Orange dan disembunyikan) -->
-             <div id="hint-box-container" class="hidden text-center">
-                 <p id="hint-display" class="text-5xl font-extrabold tracking-widest leading-none">
-                     _ _ _ _ _
-                 </p>
-             </div>
-             
-             <!-- Teks Status BESAR (IDLE, FINISHED, SEARCHING, WRONG GUESS) -->
-             <!-- Diletakkan di bawah Countdown/Hint agar tetap di atas video -->
-             <div id="main-status-message" data-ui-key="INITIAL_STATUS" class="colorful-status-text mt-24">Siap Bermain? Tekan Main!</div>
-        </div>
-
-        <!-- Overlay Umpan Balik (Centang/Silang/Sad Emoticon) -->
-        <div id="feedback-overlay" class="hidden">
-            <div id="feedback-icon" class="feedback-icon"></div>
-            <div id="feedback-text" class="feedback-text text-white"></div>
-        </div>
-
-
-        <!-- Panel Kontrol (Bottom) -->
-        <div id="control-panel" class="justify-center sm:justify-around">
-            
-            <!-- Pengaturan Bahasa -->
-            <div class="flex flex-col items-center gap-2">
-                <label for="language-select" data-ui-key="SELECT_LANG" class="text-sm font-semibold text-gray-300">Pilih Bahasa:</label>
-                <select id="language-select" class="p-2 text-base rounded-lg bg-gray-700 border border-gray-500 text-white font-semibold">
-                    <!-- Options filled by JS -->
-                </select>
-            </div>
-
-            <!-- Tombol Utama Main/Stop -->
-            <button id="toggle-detection-button" class="control-button bg-green-500 text-white hover:bg-green-600" onclick="toggleDetection()" disabled>
-                <span data-ui-key="START_BUTTON">Main</span>
-            </button>
-            
-        </div>
+        <button class="btn btn-ghost btn-small" id="closeReportBtn">✕ Tutup</button>
+      </div>
+      <div class="divider" style="margin-top:4px;"></div>
+      <div class="report-grid" id="reportGrid">
+        <!-- Filled by JS -->
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:0.8rem;color:var(--muted);">
+        Di akhir sesi, guru atau orang tua dapat menggunakan report ini untuk melihat: apa yang sudah kuat, apa yang perlu dipertahankan, dan apa yang perlu dilatih lagi.
+      </div>
+      <div class="report-actions">
+        <button class="btn btn-small btn-ghost" id="clearStatsBtn">🧹 Reset Progress</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // --- DEKLARASI GLOBAL ---
-        var polySynth; 
-        var recognition; 
-        
-        var isCameraActive = false;
-        var currentObjectData = null; 
-        var detectionIntervalId = null; // Untuk loop pemindaian objek
-        var countdownIntervalId = null; 
-        var countdownValue = 10; 
-        var gameState = 'IDLE_WAITING_START'; 
-        var attemptsLeft = 3; 
-        var isIntentionalStop = false; 
-        var isAudioInitialized = false;
-        var currentScore = 0; 
-        var messageTimeoutId = null; 
-        var isListening = false; 
-        var revealedLetters = []; 
+  <script>
+    // ================== STATE GAME ==================
+    const MAX_ATTEMPTS = 3;
+    const INITIAL_ENERGY = 20;
 
-        // Constants
-        const DETECTION_INTERVAL = 1500; // Cek objek setiap 1.5 detik
-        const MAX_ATTEMPTS = 3;
-        const COUNTDOWN_TIME = 10; 
-        const CANVAS_WIDTH = 640;
-        const CANVAS_HEIGHT = 480;
-        const SCORE_CORRECT = 5; 
-        const SCORE_WRONG = -1; 
-        const MESSAGE_DURATION = 3000; 
-        const RESUME_DELAY = 3500; 
-        const HELP_LETTERS_TO_REVEAL = 2; // Jumlah huruf yang dibuka saat 'help'
+    const gameState = {
+      avatar: null,
+      energy: INITIAL_ENERGY,
+      currentChallenge: null,
+      attemptsCurrent: 0,
+      stats: {
+        decomposition: { label: "Decomposition", success: 0, attempts: 0 },
+        pattern: { label: "Pattern Recognition", success: 0, attempts: 0 },
+        algorithm: { label: "Algorithmic Thinking", success: 0, attempts: 0 },
+        debugging: { label: "Debugging", success: 0, attempts: 0 }
+      }
+    };
 
-        // DOM elements
-        const videoElement = document.getElementById('webcam-feed');
-        const canvasElement = document.getElementById('snapshot-canvas');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const listeningIndicator = document.getElementById('listening-indicator');
-        const listeningText = document.getElementById('listening-text');
-        const toggleButton = document.getElementById('toggle-detection-button');
-        const languageSelect = document.getElementById('language-select');
-        const mainStatusMessage = document.getElementById('main-status-message');
-        const countdownWrapper = document.getElementById('countdown-wrapper');
-        const countdownDisplay = document.getElementById('countdown-display'); 
-        const feedbackOverlay = document.getElementById('feedback-overlay');
-        const feedbackIcon = document.getElementById('feedback-icon');
-        const feedbackText = document.getElementById('feedback-text');
-        const scoreDisplay = document.getElementById('score-display'); 
-        const hintBoxContainer = document.getElementById('hint-box-container'); // BARU: Kotak Petunjuk
-        const hintDisplay = document.getElementById('hint-display'); 
-        const chanceCircles = [ 
-            document.getElementById('chance-1'),
-            document.getElementById('chance-2'),
-            document.getElementById('chance-3')
-        ];
-        
-        // --- MULTI-LANGUAGE DATA ---
-        const FULL_LANGUAGE_LIST = {
-            'ID': { name: 'Bahasa Indonesia', code: 'id-ID', skip: ['lewat', 'loncat', 'skip', 'pass'], help: ['bantuan', 'tolong', 'petunjuk'] },
-            'EN': { name: 'English (US)', code: 'en-US', skip: ['skip', 'pass'], help: ['help', 'hint'] },
-        };
-        
+    // ================== DOM ELEMENTS ==================
+    const energyFill = document.getElementById("energyFill");
+    const energyValue = document.getElementById("energyValue");
+    const statusAvatar = document.getElementById("status-avatar");
+    const feedbackMsg = document.getElementById("feedbackMsg");
+    const attemptInfo = document.getElementById("attemptInfo");
+    const challengeTitle = document.getElementById("challengeTitle");
+    const challengeBody = document.getElementById("challengeBody");
+    const challengeContent = document.getElementById("challengeContent");
+    const challengeDomainChip = document.getElementById("challengeDomainChip");
 
-        const UI_STRINGS = {
-            'ID': {
-                TITLE: 'Game Tebak Suara Objek Tangan',
-                SELECT_LANG: 'Pilih Bahasa:',
-                INITIAL_STATUS: 'Siap Bermain? Tekan Main!',
-                START_BUTTON: 'Main',
-                STOP_BUTTON: 'Stop',
-                LOADING_TEXT: 'Memuat kamera dan mikrofon...',
-                SCORE_TITLE: 'Skor Anda:', 
-                AWAITING_VOICE: 'Waktunya Menjawab! Sebutkan Nama Bendanya!',
-                CORRECT_GUESS: 'Kerja Bagus!',
-                WRONG_GUESS: 'Coba Lagi',
-                TIMEOUT_FAIL_TEXT: 'Tetap Semangat',
-                OUT_OF_ATTEMPTS: 'Kesempatan Habis! Jawabannya Adalah',
-                ATTEMPTS_LEFT_TITLE: 'Sisa Kesempatan:',
-                LISTENING: 'Mendengarkan...',
-                DETECTING: 'Mendeteksi Objek...',
-                GAME_OVER: 'Permainan Selesai. Tekan Main Lagi.',
-                OBJECT_FOUND: 'Objek Terdeteksi!',
-                SKIP_ANNOUNCEMENT: 'Permintaan lewat diterima. Melompati benda ini.',
-                HELP_ANNOUNCEMENT: 'Bantuan diberikan! Ayo tebak sekarang.',
-                COUNTDOWN_LABEL: 'Waktu Tersisa:'
-            },
-            'EN': {
-                TITLE: 'Handheld Object Voice Guessing Game',
-                SELECT_LANG: 'Select Language:',
-                INITIAL_STATUS: 'Ready To Play? Press Play!',
-                START_BUTTON: 'Play',
-                STOP_BUTTON: 'Stop',
-                LOADING_TEXT: 'Loading camera and microphone...',
-                SCORE_TITLE: 'Your Score:', 
-                AWAITING_VOICE: 'Time to Answer! Say the Object Name!',
-                CORRECT_GUESS: 'Great Job!',
-                WRONG_GUESS: 'Try Again',
-                TIMEOUT_FAIL_TEXT: 'Keep Going',
-                OUT_OF_ATTEMPTS: 'Chances Up! The Answer Was',
-                ATTEMPTS_LEFT_TITLE: 'Chances Left:',
-                LISTENING: 'Listening...',
-                DETECTING: 'Detecting Object...',
-                GAME_OVER: 'Game Over. Press Play Again.',
-                OBJECT_FOUND: 'Object Detected!',
-                SKIP_ANNOUNCEMENT: 'Skip request acknowledged. Skipping this object.',
-                HELP_ANNOUNCEMENT: 'Hint provided! Guess now.',
-                COUNTDOWN_LABEL: 'Time Left:'
-            },
-        };
+    const avatarGrid = document.getElementById("avatarGrid");
+    const zones = document.getElementById("zones");
+    const resetChallengeBtn = document.getElementById("resetChallengeBtn");
+    const submitChallengeBtn = document.getElementById("submitChallengeBtn");
 
-        // --- SPEECH AND UTILITY FUNCTIONS ---
+    const reportOverlay = document.getElementById("reportOverlay");
+    const openReportBtn = document.getElementById("openReportBtn");
+    const closeReportBtn = document.getElementById("closeReportBtn");
+    const reportGrid = document.getElementById("reportGrid");
+    const reportSubtitle = document.getElementById("reportSubtitle");
+    const clearStatsBtn = document.getElementById("clearStatsBtn");
 
-        function initAudio() {
-            if (isAudioInitialized) return;
-            polySynth = new Tone.PolySynth(Tone.Synth, {
-                volume: -10,
-                oscillator: { type: 'sine' },
-                envelope: { 
-                    attack: 0.005, 
-                    decay: 0.1, 
-                    sustain: 0.3, 
-                    release: 1 
-                }
-            }).toDestination();
-            isAudioInitialized = true;
+    // ================== UTILITAS UI ==================
+    function updateEnergy(delta) {
+      gameState.energy = Math.max(0, gameState.energy + delta);
+      energyValue.textContent = gameState.energy;
+      // Asumsikan rentang 0-40 utk bar visual
+      const widthPercent = Math.min(100, (gameState.energy / 40) * 100);
+      energyFill.style.width = widthPercent + "%";
+    }
+
+    function setAvatar(name) {
+      gameState.avatar = name;
+      statusAvatar.textContent = "Avatar: " + name;
+    }
+
+    function setFeedback(text, type) {
+      feedbackMsg.textContent = text || "";
+      feedbackMsg.className = "feedback";
+      if (type === "success") feedbackMsg.classList.add("success");
+      if (type === "error") feedbackMsg.classList.add("error");
+      if (type === "hint") feedbackMsg.classList.add("hint");
+    }
+
+    function updateAttemptInfo() {
+      attemptInfo.textContent = "Percobaan: " + gameState.attemptsCurrent + " / " + MAX_ATTEMPTS;
+    }
+
+    function resetAttempts() {
+      gameState.attemptsCurrent = 0;
+      updateAttemptInfo();
+    }
+
+    function setCurrentChallenge(challengeId) {
+      gameState.currentChallenge = challengeId;
+      resetAttempts();
+      setFeedback("", "");
+    }
+
+    // ================== RENDER CHALLENGES ==================
+
+    function renderDecompositionChallenge() {
+      challengeTitle.textContent = "Kampung Puzzle – Persiapan Pesta Sekolah";
+      challengeBody.textContent = "Kamu diminta membantu warga menyiapkan pesta sekolah. Pilih langkah-langkah yang termasuk bagian dari persiapan pesta. (Boleh lebih dari satu)";
+      challengeDomainChip.textContent = "Zona: Decomposition";
+
+      challengeContent.innerHTML = `
+        <div class="challenge-block">
+          <h4>Masalah Besar:</h4>
+          <p>Mengadakan pesta sekolah akhir semester.</p>
+        </div>
+        <div class="challenge-block">
+          <h4>Pilih langkah yang tepat:</h4>
+          <ul class="options-list">
+            <li>
+              <input type="checkbox" id="dec1" value="1">
+              <label for="dec1">Membuat daftar makanan dan minuman yang akan disajikan.</label>
+            </li>
+            <li>
+              <input type="checkbox" id="dec2" value="2">
+              <label for="dec2">Menyusun jadwal latihan lomba dan penampilan siswa.</label>
+            </li>
+            <li>
+              <input type="checkbox" id="dec3" value="3">
+              <label for="dec3">Menghafal semua pelajaran Matematika dari kelas 1 sampai 6.</label>
+            </li>
+            <li>
+              <input type="checkbox" id="dec4" value="4">
+              <label for="dec4">Menata kursi dan dekorasi aula sekolah.</label>
+            </li>
+            <li>
+              <input type="checkbox" id="dec5" value="5">
+              <label for="dec5">Membeli hadiah kecil untuk pemenang lomba.</label>
+            </li>
+          </ul>
+          <p class="hint-text">Hint: Pilih langkah yang langsung membantu persiapan pesta, bukan tujuan akademik lain.</p>
+        </div>
+      `;
+    }
+
+    function checkDecompositionAnswer() {
+      const correct = ["1", "2", "4", "5"]; // yang benar
+      const wrong = ["3"];
+      const selected = Array.from(challengeContent.querySelectorAll("input[type='checkbox']:checked"))
+        .map(el => el.value);
+
+      if (selected.length === 0) {
+        return { correct: false, message: "Pilih setidaknya satu langkah yang menurutmu bagian dari persiapan pesta." };
+      }
+
+      // Cek apakah ada pilihan salah
+      for (let v of selected) {
+        if (wrong.includes(v)) {
+          return { correct: false, message: "Masih ada langkah yang tidak termasuk persiapan pesta. Coba pikir, apakah ini benar-benar membantu pesta?" };
         }
-
-        function initSpeech() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                if (!recognition) { 
-                    recognition = new SpeechRecognition();
-                    recognition.continuous = false; 
-                    recognition.interimResults = false;
-                    recognition.maxAlternatives = 1;
-                    setupRecognitionHandlers();
-                }
-            } else {
-                 console.error("Speech Recognition API not supported in this browser.");
-                 setMainStatusMessage("Speech Recognition Not Supported!", true);
-            }
+      }
+      // Cek apakah semua langkah benar dipilih
+      for (let v of correct) {
+        if (!selected.includes(v)) {
+          return { correct: false, message: "Ada langkah penting yang belum kamu pilih. Coba cek lagi daftar tugasnya." };
         }
+      }
 
-        function getSelectedLangKey() {
-            return languageSelect.value;
+      return { correct: true, message: "Keren! Kamu berhasil mengurai masalah besar menjadi langkah-langkah kecil yang tepat." };
+    }
+
+    function renderPatternChallenge() {
+      challengeTitle.textContent = "Hutan Pola – Batu Berwarna";
+      challengeBody.textContent = "Kamu berjalan di jalur batu berwarna di Hutan Pola. Kamu harus menebak warna batu berikutnya agar tidak jatuh.";
+      challengeDomainChip.textContent = "Zona: Pattern Recognition";
+
+      challengeContent.innerHTML = `
+        <div class="challenge-block">
+          <h4>Pola Batu:</h4>
+          <p>Merah, Biru, Biru, Merah, Biru, Biru, Merah, Biru, Biru, <b>?</b></p>
+        </div>
+        <div class="challenge-block">
+          <h4>Pilih warna batu berikutnya:</h4>
+          <ul class="options-list">
+            <li>
+              <input type="radio" name="pattern" id="pat1" value="Merah">
+              <label for="pat1">Merah</label>
+            </li>
+            <li>
+              <input type="radio" name="pattern" id="pat2" value="Biru">
+              <label for="pat2">Biru</label>
+            </li>
+            <li>
+              <input type="radio" name="pattern" id="pat3" value="Hijau">
+              <label for="pat3">Hijau</label>
+            </li>
+          </ul>
+          <p class="hint-text">Hint: Perhatikan urutan "Merah, Biru, Biru" yang berulang.</p>
+        </div>
+      `;
+    }
+
+    function checkPatternAnswer() {
+      const selected = challengeContent.querySelector("input[name='pattern']:checked");
+      if (!selected) {
+        return { correct: false, message: "Pilih satu warna batu yang menurutmu paling tepat." };
+      }
+      if (selected.value === "Merah") {
+        return { correct: false, message: "Coba perhatikan lagi: setelah 'Merah' selalu datang dua warna yang sama sebelumnya." };
+      }
+      if (selected.value === "Hijau") {
+        return { correct: false, message: "Di pola yang diberikan tidak ada warna hijau. Coba pikir lagi dari awal." };
+      }
+      return { correct: true, message: "Hebat! Kamu menemukan pola 'Merah, Biru, Biru' yang berulang terus." };
+    }
+
+    function renderAlgorithmChallenge() {
+      challengeTitle.textContent = "Lembah Algoritma – Kunci Gerbang";
+      challengeBody.textContent = "Kamu harus menyusun algoritma agar avatar mencapai gerbang dan mengambil kunci.";
+      challengeDomainChip.textContent = "Zona: Algorithmic Thinking";
+
+      challengeContent.innerHTML = `
+        <div class="challenge-block">
+          <h4>Situasi:</h4>
+          <p>Avatar berdiri di titik awal. Di depan ada jalan lurus 3 langkah, lalu belok kanan ke tempat kunci, lalu maju 1 langkah untuk sampai ke kunci.</p>
+        </div>
+        <div class="challenge-block">
+          <h4>Susun urutan langkah yang benar (1–4):</h4>
+          <p style="margin-bottom:6px;">Isi nomor urut di setiap langkah, tanpa mengulang angka.</p>
+          <ul class="options-list">
+            <li>
+              <label for="alg1">_____ Maju 3 langkah ke depan.</label>
+              <select id="alg1">
+                <option value="">–</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+              </select>
+            </li>
+            <li>
+              <label for="alg2">_____ Belok kanan.</label>
+              <select id="alg2">
+                <option value="">–</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+              </select>
+            </li>
+            <li>
+              <label for="alg3">_____ Maju 1 langkah untuk mengambil kunci.</label>
+              <select id="alg3">
+                <option value="">–</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+              </select>
+            </li>
+            <li>
+              <label for="alg4">_____ Berteriak 'Aku sudah sampai!' (opsional, tidak wajib dilakukan sebelum kunci diambil).</label>
+              <select id="alg4">
+                <option value="">–</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+              </select>
+            </li>
+          </ul>
+          <p class="hint-text">Hint: Pastikan kunci diambil dulu sebelum bersorak.</p>
+        </div>
+      `;
+    }
+
+    function checkAlgorithmAnswer() {
+      const s1 = document.getElementById("alg1").value;
+      const s2 = document.getElementById("alg2").value;
+      const s3 = document.getElementById("alg3").value;
+      const s4 = document.getElementById("alg4").value;
+
+      if (!s1 || !s2 || !s3 || !s4) {
+        return { correct: false, message: "Isi semua nomor urut 1–4 terlebih dahulu." };
+      }
+
+      const all = [s1, s2, s3, s4];
+      const unique = new Set(all);
+      if (unique.size !== 4) {
+        return { correct: false, message: "Setiap nomor urut hanya boleh dipakai sekali." };
+      }
+
+      // Jawaban benar: maju 3 langkah (1), belok kanan (2), maju 1 langkah (3), bersorak (4)
+      if (s1 === "1" && s2 === "2" && s3 === "3" && s4 === "4") {
+        return { correct: true, message: "Mantap! Algoritmamu terurut dengan logis dan efisien." };
+      }
+
+      if (s4 === "1" || s4 === "2" || s4 === "3") {
+        return { correct: false, message: "Kamu bersorak terlalu cepat. Coba pastikan kunci sudah diambil dulu." };
+      }
+
+      return { correct: false, message: "Urutannya belum tepat. Pikirkan: jalan dulu, belok, ambil kunci, baru bersorak." };
+    }
+
+    function renderDebuggingChallenge() {
+      challengeTitle.textContent = "Laboratorium Debug – Mie Instan Bermasalah";
+      challengeBody.textContent = "Kamu menemukan urutan langkah memasak mie instan yang salah. Tugasmu adalah menemukan langkah yang tidak tepat.";
+      challengeDomainChip.textContent = "Zona: Debugging";
+
+      challengeContent.innerHTML = `
+        <div class="challenge-block">
+          <h4>Program Memasak Mie Instan (Versi Salah):</h4>
+          <ol style="padding-left:18px;font-size:0.85rem;">
+            <li>Tuang bumbu ke mangkuk.</li>
+            <li>Masukkan mie ke panci.</li>
+            <li>Tuang mie yang masih kering ke mangkuk.</li>
+            <li>Isi panci dengan air dan rebus sampai mendidih.</li>
+            <li>Masukkan mie yang sudah matang ke mangkuk berisi bumbu.</li>
+          </ol>
+        </div>
+        <div class="challenge-block">
+          <h4>Pertanyaan:</h4>
+          <p>Langkah nomor berapa yang membuat program ini menjadi salah?</p>
+          <select id="dbgStepSelect">
+            <option value="">Pilih nomor langkah yang salah</option>
+            <option value="1">Langkah 1</option>
+            <option value="2">Langkah 2</option>
+            <option value="3">Langkah 3</option>
+            <option value="4">Langkah 4</option>
+            <option value="5">Langkah 5</option>
+          </select>
+          <p class="hint-text">Hint: Apakah ada mie kering yang langsung dituang ke mangkuk?</p>
+        </div>
+      `;
+    }
+
+    function checkDebuggingAnswer() {
+      const v = document.getElementById("dbgStepSelect").value;
+      if (!v) {
+        return { correct: false, message: "Pilih satu langkah yang menurutmu salah." };
+      }
+      if (v === "3") {
+        return { correct: true, message: "Bagus! Langkah 3 membuat mie kering langsung masuk mangkuk. Itu bug yang kamu temukan." };
+      }
+      return { correct: false, message: "Belum tepat. Coba pikir, di langkah mana urutan memasak menjadi tidak masuk akal." };
+    }
+
+    // ================== DISPATCHER CHALLENGES ==================
+    function renderChallenge(challengeId) {
+      setCurrentChallenge(challengeId);
+
+      switch (challengeId) {
+        case "decomposition":
+          renderDecompositionChallenge();
+          break;
+        case "pattern":
+          renderPatternChallenge();
+          break;
+        case "algorithm":
+          renderAlgorithmChallenge();
+          break;
+        case "debugging":
+          renderDebuggingChallenge();
+          break;
+        default:
+          challengeContent.innerHTML = "<div class='empty-state'>Pilih zona di panel sebelah kiri untuk memulai tantangan.</div>";
+      }
+    }
+
+    function checkCurrentChallenge() {
+      if (!gameState.currentChallenge) {
+        return { correct: null, message: "Belum ada tantangan yang dipilih. Silakan pilih zona terlebih dahulu." };
+      }
+      let result;
+      switch (gameState.currentChallenge) {
+        case "decomposition":
+          result = checkDecompositionAnswer();
+          result.domain = "decomposition";
+          return result;
+        case "pattern":
+          result = checkPatternAnswer();
+          result.domain = "pattern";
+          return result;
+        case "algorithm":
+          result = checkAlgorithmAnswer();
+          result.domain = "algorithm";
+          return result;
+        case "debugging":
+          result = checkDebuggingAnswer();
+          result.domain = "debugging";
+          return result;
+        default:
+          return { correct: null, message: "Tantangan tidak dikenal." };
+      }
+    }
+
+    // ================== REPORT CT ==================
+    function levelFromStats(stat) {
+      if (stat.success === 0) return { level: "Beginner", desc: "Kamu baru mulai mencoba tantangan di area ini. Tidak apa-apa, setiap ahli juga pernah jadi pemula." };
+      if (stat.success === 1) return { level: "Developing", desc: "Kamu mulai memahami konsep ini. Teruskan latihan dengan membaca soal pelan-pelan." };
+      if (stat.success === 2) return { level: "Proficient", desc: "Kamu cukup kuat di area ini. Pertahankan dan bantu temanmu jika mereka butuh." };
+      if (stat.success >= 3) return { level: "Advanced", desc: "Kamu sangat kuat di area ini. Coba jelaskan dengan katamu sendiri ke orang lain." };
+    }
+
+    function generateSuggestions(statKey, stat) {
+      switch (statKey) {
+        case "decomposition":
+          if (stat.success === 0) return "Latih lagi dengan mencoba mengurai kegiatan sehari-hari menjadi beberapa langkah kecil.";
+          if (stat.success === 1) return "Coba buat daftar langkah yang lebih lengkap ketika menghadapi masalah besar.";
+          return "Pertahankan caramu memecah masalah. Kamu sudah seperti project planner!";
+        case "pattern":
+          if (stat.success === 0) return "Biasakan memperhatikan pengulangan dalam warna, angka, atau gerakan.";
+          if (stat.success === 1) return "Coba tebak pola berikutnya sebelum melihat jawaban.";
+          return "Kamu jago melihat pola. Pertahankan dan gunakan untuk memprediksi hal berikutnya.";
+        case "algorithm":
+          if (stat.success === 0) return "Latih urutan langkah dengan menuliskan langkah harianmu secara runtut.";
+          if (stat.success === 1) return "Pastikan tidak ada langkah yang tertukar, dari awal sampai akhir.";
+          return "Algoritmamu rapi dan jelas. Pertahankan kebiasaan berpikir terurut.";
+        case "debugging":
+          if (stat.success === 0) return "Coba biasakan mengecek langkah satu per satu ketika ada yang salah.";
+          if (stat.success === 1) return "Saat ada error, jangan hapus semua. Cek pelan-pelan langkah mana yang tidak masuk akal.";
+          return "Kamu seperti detektif bug. Pertahankan strategimu dalam menemukan kesalahan.";
+      }
+    }
+
+    function updateReport() {
+      const avatarInfo = gameState.avatar ? "Avatar: " + gameState.avatar + " • Energi saat ini: " + gameState.energy : "Belum memilih avatar. Energi saat ini: " + gameState.energy;
+      reportSubtitle.textContent = avatarInfo;
+
+      reportGrid.innerHTML = "";
+
+      Object.entries(gameState.stats).forEach(([key, stat]) => {
+        const levelInfo = levelFromStats(stat);
+        const suggestion = generateSuggestions(key, stat);
+        const card = document.createElement("div");
+        card.className = "report-card";
+        card.innerHTML = `
+          <h4>${stat.label}</h4>
+          <div class="report-level">Level: <span>${levelInfo.level}</span></div>
+          <div>Berhasil: <b>${stat.success}</b> tantangan</div>
+          <div>Coba: ${stat.attempts} kali</div>
+          <p style="margin-top:4px;">${levelInfo.desc}</p>
+          <p style="margin-top:4px;color:var(--accent);font-size:0.78rem;">Saran: ${suggestion}</p>
+        `;
+        reportGrid.appendChild(card);
+      });
+    }
+
+    // ================== EVENT HANDLERS ==================
+
+    // Avatar selection
+    avatarGrid.addEventListener("click", (e) => {
+      const card = e.target.closest(".avatar-card");
+      if (!card) return;
+      const avatar = card.dataset.avatar;
+      setAvatar(avatar);
+
+      // Visual select
+      Array.from(avatarGrid.querySelectorAll(".avatar-card")).forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+    });
+
+    // Zone selection
+    zones.addEventListener("click", (e) => {
+      const card = e.target.closest(".zone-card");
+      if (!card) return;
+      const challengeId = card.dataset.challenge;
+      renderChallenge(challengeId);
+    });
+
+    // Reset challenge (UI only)
+    resetChallengeBtn.addEventListener("click", () => {
+      if (!gameState.currentChallenge) {
+        setFeedback("Belum ada tantangan yang dipilih.", "hint");
+        return;
+      }
+      renderChallenge(gameState.currentChallenge);
+      setFeedback("Tantangan di-reset. Coba susun ulang jawabanmu.", "hint");
+    });
+
+    // Submit challenge
+    submitChallengeBtn.addEventListener("click", () => {
+      const result = checkCurrentChallenge();
+      if (result.correct === null) {
+        setFeedback(result.message, "hint");
+        return;
+      }
+
+      if (!result.domain) {
+        result.domain = gameState.currentChallenge || "decomposition";
+      }
+
+      const stat = gameState.stats[result.domain];
+      stat.attempts += 1;
+
+      if (result.correct) {
+        // Jawaban benar
+        stat.success += 1;
+        updateEnergy(+5);
+        setFeedback(result.message + " (+5 energi)", "success");
+        resetAttempts();
+      } else {
+        // Jawaban salah
+        gameState.attemptsCurrent += 1;
+        if (gameState.attemptsCurrent >= MAX_ATTEMPTS) {
+          updateEnergy(-3);
+          setFeedback(result.message + " Kamu sudah mencoba 3×. Energi -3. Kamu boleh mencoba lagi dengan lebih hati-hati.", "error");
+          resetAttempts();
+        } else {
+          setFeedback(result.message + " (Percobaan ke-" + gameState.attemptsCurrent + ")", "error");
+          updateAttemptInfo();
         }
+      }
+    });
 
-        function getSelectedLangData() {
-            const selectedKey = languageSelect.value;
-            return FULL_LANGUAGE_LIST[selectedKey] || FULL_LANGUAGE_LIST['EN']; 
-        }
+    // Report modal
+    openReportBtn.addEventListener("click", () => {
+      updateReport();
+      reportOverlay.style.display = "flex";
+    });
 
-        function getSelectedLangCode() {
-            return getSelectedLangData().code;
-        }
-        
-        function getStrings() {
-            const selectedKey = getSelectedLangKey();
-            return UI_STRINGS[selectedKey] || UI_STRINGS['EN']; 
-        }
+    closeReportBtn.addEventListener("click", () => {
+      reportOverlay.style.display = "none";
+    });
 
-        function speak(text) {
-            if (!('speechSynthesis' in window)) return;
-            
-            window.speechSynthesis.cancel();
-            const langCode = getSelectedLangCode();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = langCode;
-            
-            const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(v => v.lang === langCode) || voices.find(v => v.lang.startsWith(langCode.substring(0, 2)));
-            if (voice) {
-                utterance.voice = voice;
-            }
-            
-            window.speechSynthesis.speak(utterance);
-        }
+    reportOverlay.addEventListener("click", (e) => {
+      if (e.target === reportOverlay) {
+        reportOverlay.style.display = "none";
+      }
+    });
 
-        async function playFeedbackSound(isCorrect) {
-            await Tone.start();
-            initAudio(); 
+    clearStatsBtn.addEventListener("click", () => {
+      if (!confirm("Yakin ingin mereset progress (statistik & energi) untuk sesi ini?")) return;
+      gameState.energy = INITIAL_ENERGY;
+      Object.values(gameState.stats).forEach(stat => {
+        stat.success = 0;
+        stat.attempts = 0;
+      });
+      updateEnergy(0);
+      updateReport();
+      setFeedback("Progress di-reset. Kamu bisa mulai bermain lagi dari awal.", "hint");
+    });
 
-            if (isCorrect) {
-                polySynth.triggerAttackRelease(["C5", "E5", "G5"], "4n");
-            } else if (isCorrect === 'found') {
-                 polySynth.triggerAttackRelease(["E4", "G4"], "8n"); // Suara Deteksi
-            } else {
-                polySynth.triggerAttackRelease("C4", "8n");
-            }
-        }
-        
-        // --- HINT/HANGMAN FUNCTIONS ---
-        
-        function initHint() {
-            // Reset revealed letters based on the new object
-            if (currentObjectData && currentObjectData.label) {
-                revealedLetters = new Array(currentObjectData.label.length).fill(null);
-            } else {
-                revealedLetters = [];
-            }
-        }
-        
-        function getHintDisplay() {
-            if (!currentObjectData) return '---';
-            const label = currentObjectData.label.toLowerCase();
-            let display = '';
-            
-            for (let i = 0; i < label.length; i++) {
-                if (revealedLetters[i] !== null) {
-                    display += label[i].toUpperCase();
-                } else if (label[i] === ' ') {
-                    display += ' / '; 
-                } else {
-                    display += '_';
-                }
-                display += ' '; 
-            }
-            return display.trim();
-        }
-        
-        function revealRandomLetters(count) {
-            if (!currentObjectData) return;
-            const label = currentObjectData.label.toLowerCase();
-            let unrevealedIndices = [];
-
-            for (let i = 0; i < label.length; i++) {
-                if (revealedLetters[i] === null && label[i] !== ' ') {
-                    unrevealedIndices.push(i);
-                }
-            }
-            
-            if (unrevealedIndices.length === 0) {
-                console.log("No unrevealed letters left.");
-                return;
-            }
-            
-            unrevealedIndices.sort(() => 0.5 - Math.random());
-            const indicesToReveal = unrevealedIndices.slice(0, count);
-
-            indicesToReveal.forEach(index => {
-                revealedLetters[index] = label[index];
-            });
-            
-            hintDisplay.textContent = getHintDisplay();
-        }
-
-        // --- COUNTDOWN & TIMER FUNCTIONS ---
-        
-        function startCountdown() {
-            stopCountdown(); 
-            
-            countdownValue = COUNTDOWN_TIME;
-            countdownDisplay.textContent = countdownValue;
-            countdownDisplay.classList.remove('urgent');
-
-            mainStatusMessage.classList.remove('mt-24'); // Atur ulang posisi status utama agar tidak mengganggu
-            mainStatusMessage.classList.add('mt-8');
-            countdownWrapper.classList.remove('hidden'); 
-            // hintDisplay.classList.remove('hidden'); <-- Dihapus. Hint sekarang dikontrol oleh 'help'
-
-            countdownIntervalId = setInterval(() => {
-                countdownValue--;
-                countdownDisplay.textContent = countdownValue;
-
-                if (countdownValue <= 3) {
-                    countdownDisplay.classList.add('urgent');
-                } else {
-                    countdownDisplay.classList.remove('urgent');
-                }
-
-                if (countdownValue <= 0) {
-                    handleTimeoutSkip(); // Panggil fungsi saat hitungan mundur selesai
-                }
-            }, 1000);
-        }
-
-        function stopCountdown() {
-            if (countdownIntervalId) {
-                clearInterval(countdownIntervalId);
-                countdownIntervalId = null;
-            }
-            countdownWrapper.classList.add('hidden'); 
-            // hintDisplay.classList.add('hidden'); <-- Dihapus. Hint sekarang dikontrol oleh 'help'
-        }
-
-        function handleTimeoutSkip() {
-            stopCountdown();
-            stopListening(); 
-            hintBoxContainer.classList.add('hidden'); // BARU: Sembunyikan petunjuk
-            
-            const strings = getStrings();
-
-            attemptsLeft--; 
-            currentScore += SCORE_WRONG;
-            updateScoreDisplay();
-            updateAttemptTrackers();
-            
-            showSadFeedback(strings.TIMEOUT_FAIL_TEXT); // Tampilkan emoticon sedih
-
-            // Jika masih ada kesempatan, mulai lagi deteksi objek baru
-            if (attemptsLeft > 0) {
-                 speak(`${strings.TIMEOUT_FAIL_TEXT}! Mencari objek baru...`);
-                 setTimeout(() => startDetectionLoop(true), RESUME_DELAY); // Reset attempts dan mulai deteksi lagi
-            } else {
-                // Game Over
-                gameState = 'FINISHED';
-                updateUI(); 
-                speak(`${strings.OUT_OF_ATTEMPTS} ${currentObjectData.label}! ${strings.GAME_OVER}`);
-                stopDetection(); 
-            }
-        }
-
-        // --- UI AND LOCALIZATION FUNCTIONS ---
-
-        function updateScoreDisplay() {
-            scoreDisplay.textContent = currentScore;
-            if (currentScore >= 0) {
-                scoreDisplay.classList.remove('text-red-500');
-                scoreDisplay.classList.add('text-green-600');
-            } else {
-                scoreDisplay.classList.remove('text-green-600');
-                scoreDisplay.classList.add('text-red-500');
-            }
-        }
-        
-        function clearMessageTimeout() {
-            if (messageTimeoutId) {
-                clearTimeout(messageTimeoutId);
-                messageTimeoutId = null;
-            }
-        }
-
-        function setMainStatusMessage(text, isTemporary = false) {
-            clearMessageTimeout();
-            
-            // Sembunyikan hitungan mundur/hint, tampilkan pesan teks besar
-            stopCountdown(); 
-            hintBoxContainer.classList.add('hidden'); // Sembunyikan saat status besar tampil
-            mainStatusMessage.classList.remove('hidden');
-            mainStatusMessage.textContent = text;
-            mainStatusMessage.className = 'colorful-status-text mt-24'; // Reset ke posisi idle
-            
-            if (isTemporary) {
-                messageTimeoutId = setTimeout(() => {
-                    if (gameState === 'SEARCHING_OBJECT') {
-                         setMainStatusMessage(getStrings().DETECTING);
-                         mainStatusMessage.classList.remove('mt-24');
-                    } else if (gameState === 'AWAITING_VOICE_GUESS') {
-                         // Kembali ke mode menebak/timer
-                         setAwaitingVoiceState();
-                    } else {
-                        updateUI();
-                    }
-                }, MESSAGE_DURATION);
-            }
-        }
-        
-        // Fungsi untuk mengatur UI ke status AWAITING_VOICE_GUESS
-        function setAwaitingVoiceState() {
-             const strings = getStrings();
-             
-             // Atur ulang posisi status utama ke posisi menebak (lebih ke atas)
-             mainStatusMessage.classList.remove('mt-24');
-             mainStatusMessage.classList.add('mt-8');
-             mainStatusMessage.textContent = strings.AWAITING_VOICE;
-             
-             // Pastikan Hint Box tersembunyi saat mode tebak dimulai (hanya tampil setelah 'help')
-             hintBoxContainer.classList.add('hidden'); 
-             
-             hintDisplay.textContent = getHintDisplay();
-             startCountdown(); 
-             
-             // Mulai mendengarkan
-             startListening();
-        }
-
-        function updateUI() {
-            const strings = getStrings();
-            
-            document.querySelectorAll('[data-ui-key]').forEach(el => {
-                const key = el.getAttribute('data-ui-key');
-                if (strings[key]) {
-                    if (el.tagName === 'TITLE') {
-                        document.title = strings[key];
-                    } else if (el !== mainStatusMessage) { 
-                        el.textContent = strings[key];
-                    }
-                }
-            });
-
-            // Perbarui tombol & tampilan indikator
-            if (gameState === 'SEARCHING_OBJECT' || gameState === 'AWAITING_VOICE_GUESS') {
-                toggleButton.textContent = strings.STOP_BUTTON;
-                toggleButton.classList.replace('bg-green-500', 'bg-red-500');
-                toggleButton.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
-            } else { 
-                toggleButton.textContent = strings.START_BUTTON;
-                toggleButton.classList.replace('bg-red-500', 'bg-green-500');
-                toggleButton.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
-            }
-
-            // Perbarui pesan status utama
-            if (gameState === 'IDLE_WAITING_START' && isCameraActive) {
-                setMainStatusMessage(strings.INITIAL_STATUS);
-                listeningIndicator.classList.add('hidden'); 
-            } else if (gameState === 'FINISHED') {
-                 setMainStatusMessage(strings.GAME_OVER);
-                 listeningIndicator.classList.add('hidden'); 
-            } else if (gameState === 'SEARCHING_OBJECT') {
-                 listeningText.textContent = strings.DETECTING;
-                 listeningIndicator.classList.remove('hidden'); 
-                 setMainStatusMessage(strings.DETECTING); // Status besar
-                 mainStatusMessage.classList.remove('mt-24');
-                 stopCountdown();
-            } 
-            
-            updateAttemptTrackers();
-            updateScoreDisplay(); 
-        }
-
-
-        function fillLanguageDropdown() {
-            const defaultKey = 'ID'; 
-            languageSelect.innerHTML = ''; 
-            
-            Object.entries(FULL_LANGUAGE_LIST).forEach(([key, langData]) => {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = langData.name;
-                if (key === defaultKey) option.selected = true;
-                languageSelect.appendChild(option);
-            });
-        }
-        
-        function updateAttemptTrackers() {
-            chanceCircles.forEach((circle, index) => {
-                if (index < attemptsLeft) {
-                    circle.classList.add('active'); 
-                    circle.style.opacity = '1';
-                } else {
-                    circle.classList.remove('active'); 
-                    circle.style.opacity = '0.4';
-                }
-            });
-        }
-        
-        function hideOverlays() {
-            feedbackOverlay.classList.add('hidden');
-            feedbackOverlay.style.opacity = '0';
-        }
-        
-        function showFeedback(isCorrect) {
-            const strings = getStrings();
-            hideOverlays();
-            
-            feedbackOverlay.classList.remove('hidden');
-            feedbackIcon.classList.remove('sad-moving-icon');
-            hintBoxContainer.classList.add('hidden'); // Sembunyikan hint saat feedback benar/salah
-
-            if (isCorrect) {
-                feedbackIcon.innerHTML = '🤩'; 
-                feedbackIcon.style.color = '#10B981'; 
-                feedbackText.textContent = `(+${SCORE_CORRECT} Poin) - ${strings.CORRECT_GUESS}`; 
-                feedbackText.style.color = '#10B981';
-                playFeedbackSound(true);
-                speak(strings.CORRECT_GUESS);
-            } else {
-                feedbackIcon.innerHTML = '🥺'; 
-                feedbackIcon.style.color = '#EF4444'; 
-                feedbackText.textContent = `(${SCORE_WRONG} Poin) - ${strings.WRONG_GUESS}`; 
-                feedbackText.style.color = '#EF4444';
-                playFeedbackSound(false);
-                speak(strings.WRONG_GUESS);
-            }
-            
-            setTimeout(() => {
-                feedbackOverlay.style.opacity = '1';
-            }, 50);
-
-            // Sembunyikan umpan balik setelah 3 detik
-            setTimeout(hideOverlays, 3000); 
-        }
-        
-        // FUNGSI KHUSUS UNTUK TIMEOUT
-        function showSadFeedback(message) {
-            hideOverlays();
-            
-            feedbackOverlay.classList.remove('hidden');
-            
-            feedbackIcon.innerHTML = '😢'; 
-            feedbackIcon.style.color = '#4f46e5'; // Biru Ungu
-            feedbackIcon.classList.add('sad-moving-icon'); // Aktifkan animasi
-            
-            feedbackText.textContent = message; 
-            feedbackText.style.color = '#4f46e5';
-
-            setTimeout(() => {
-                feedbackOverlay.style.opacity = '1';
-            }, 50);
-
-            // Sembunyikan setelah 3 detik dan mulai loop deteksi
-            setTimeout(hideOverlays, 3000); 
-        }
-
-        // --- CAMERA & SNAPSHOT FUNCTIONS ---
-
-        function startCamera() {
-            const strings = getStrings();
-
-            loadingOverlay.style.opacity = '1';
-            
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT }, 
-                    audio: true 
-                })
-                    .then(stream => {
-                        stream.getAudioTracks().forEach(track => track.stop());
-                        
-                        videoElement.srcObject = stream;
-                        videoElement.classList.remove('hidden');
-                        videoElement.onloadedmetadata = () => {
-                            canvasElement.width = videoElement.videoWidth;
-                            canvasElement.height = videoElement.videoHeight;
-
-                            videoElement.play();
-                            isCameraActive = true;
-                            
-                            toggleButton.disabled = false;
-                            
-                            loadingOverlay.style.opacity = '0';
-                            loadingOverlay.addEventListener('transitionend', () => {
-                                loadingOverlay.classList.add('hidden');
-                            }, { once: true });
-                            
-                            gameState = 'IDLE_WAITING_START';
-                            updateUI();
-                        };
-                    })
-                    .catch(error => {
-                        console.error("Error accessing camera/mic: ", error);
-                        setMainStatusMessage(strings.INITIAL_STATUS + " (Permission Denied)");
-                        loadingOverlay.style.opacity = '0';
-                        loadingOverlay.addEventListener('transitionend', () => {
-                            loadingOverlay.classList.add('hidden');
-                        });
-                    });
-            } else {
-                setMainStatusMessage(strings.INITIAL_STATUS + " (Browser Not Supported)");
-                loadingOverlay.style.opacity = '0';
-                loadingOverlay.addEventListener('transitionend', () => {
-                    loadingOverlay.classList.add('hidden');
-                }, { once: true });
-            }
-        }
-
-        function takeSnapshot() {
-            const context = canvasElement.getContext('2d');
-            context.drawImage(videoElement, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            return canvasElement.toDataURL('image/jpeg', 0.8).split(',')[1];
-        }
-        
-        // --- API & LOGIC FUNCTIONS ---
-        
-        function checkGuess(transcript) {
-            const strings = getStrings();
-            
-            stopListening(); 
-            
-            if (currentObjectData && currentObjectData.label) {
-                const targetLabel = currentObjectData.label.toLowerCase().trim();
-                const guess = transcript.toLowerCase().trim();
-                const langData = getSelectedLangData();
-                
-                const isHelpCommand = langData.help.some(term => guess.includes(term));
-                if (isHelpCommand) {
-                    setMainStatusMessage(strings.HELP_ANNOUNCEMENT, true); 
-                    revealRandomLetters(HELP_LETTERS_TO_REVEAL);
-                    
-                    // --- BARU: Tampilkan kotak petunjuk setelah bantuan diminta ---
-                    hintBoxContainer.classList.remove('hidden');
-                    
-                    setTimeout(() => {
-                        if (gameState === 'AWAITING_VOICE_GUESS') {
-                             setAwaitingVoiceState(); 
-                        }
-                    }, RESUME_DELAY);
-                    return; 
-                }
-                
-                const isSkipCommand = langData.skip.some(term => guess.includes(term));
-                if (isSkipCommand) {
-                    setMainStatusMessage(strings.SKIP_ANNOUNCEMENT, true); 
-                    
-                    attemptsLeft--;
-                    currentScore += SCORE_WRONG;
-                    updateScoreDisplay();
-                    updateAttemptTrackers();
-
-                    if (attemptsLeft <= 0) {
-                        gameState = 'FINISHED';
-                        updateUI(); 
-                        speak(`${strings.OUT_OF_ATTEMPTS} ${currentObjectData.label}! ${strings.GAME_OVER}`);
-                        stopDetection(); 
-                        return;
-                    }
-                    
-                    speak(strings.SKIP_ANNOUNCEMENT);
-                    // Langsung ke deteksi objek baru setelah skip
-                    setTimeout(() => startDetectionLoop(true), RESUME_DELAY); 
-                    return; 
-                }
-
-                // 3. Periksa Jawaban Benar
-                if (guess.includes(targetLabel) || targetLabel.includes(guess) || targetLabel.replace(/\s+/g, '').includes(guess.replace(/\s+/g, ''))) {
-                    currentScore += SCORE_CORRECT;
-                    showFeedback(true);
-                    updateScoreDisplay();
-                    
-                    stopCountdown(); 
-                    // Langsung ke deteksi objek baru setelah benar
-                    setTimeout(() => startDetectionLoop(true), RESUME_DELAY); 
-                    return;
-                }
-            }
-
-            // 4. Jawaban Salah
-            attemptsLeft--;
-            currentScore += SCORE_WRONG;
-            showFeedback(false);
-            updateScoreDisplay();
-            updateAttemptTrackers();
-
-            if (attemptsLeft <= 0) {
-                stopCountdown();
-                gameState = 'FINISHED';
-                updateUI(); 
-                speak(`${strings.OUT_OF_ATTEMPTS} ${currentObjectData.label}! ${strings.GAME_OVER}`);
-                stopDetection(); 
-            } else {
-                setMainStatusMessage(getStrings().WRONG_GUESS, true); 
-                
-                setTimeout(() => {
-                    if (gameState === 'AWAITING_VOICE_GUESS') {
-                         setAwaitingVoiceState();
-                    }
-                }, RESUME_DELAY);
-            }
-        }
-        
-        async function fetchWithRetry(url, options, maxRetries = 3) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) {
-                        if (response.status === 429 && i < maxRetries - 1) { 
-                            const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue;
-                        }
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response;
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        async function fetchObjectDetection() {
-            if (gameState !== 'SEARCHING_OBJECT') return;
-
-            const base64Image = takeSnapshot();
-            if (!base64Image) {
-                 console.error("Failed to capture image snapshot during detection.");
-                 return;
-            }
-            
-            const strings = getStrings();
-
-            const userPrompt = "Identify the single, most prominent object being held in the person's hand in this image. Do not describe the person or the background. Respond only with a single, common, non-plural English noun for the handheld item. For example: 'key', 'cup', or 'phone'. Do not include quotes, articles, or any other text.";
-            
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [
-                    {
-                        role: "user",
-                        parts: [
-                            { text: userPrompt },
-                            {
-                                inlineData: {
-                                    mimeType: "image/jpeg",
-                                    data: base64Image
-                                }
-                            }
-                        ]
-                    }
-                ],
-                systemInstruction: {
-                    parts: [{ text: "You are an object detection model for a voice guessing game. Focus exclusively on the small object being held by the user. Your response must be a single, non-plural English noun that is easy to guess." }]
-                }
-            };
-
-            try {
-                const response = await fetchWithRetry(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
-
-                if (text && text.length > 1 && gameState === 'SEARCHING_OBJECT') {
-                    // --- BERHASIL DETEKSI! ---
-                    stopDetectionLoop(); 
-                    
-                    currentObjectData = { label: text, source: 'gemini' };
-                    console.log('Detected Object:', currentObjectData.label);
-                    
-                    // 1. Keluarkan suara/pesan "Objek Terdeteksi!"
-                    playFeedbackSound('found');
-                    speak(strings.OBJECT_FOUND);
-
-                    // 2. Transisi ke mode menebak
-                    gameState = 'AWAITING_VOICE_GUESS';
-                    initHint();
-                    
-                    // 3. Set UI ke mode menebak dan mulai hitungan mundur
-                    setTimeout(() => {
-                         setAwaitingVoiceState();
-                    }, 500); // Jeda singkat setelah pengumuman
-                    
-                } else {
-                    console.info("No clear handheld object detected, continuing detection loop.");
-                }
-
-            } catch (error) {
-                console.error("API Fetch Error:", error);
-                // Hanya log error, biarkan loop deteksi berlanjut
-            }
-        }
-        
-        // --- SPEECH RECOGNITION HANDLERS ---
-        
-        function setupRecognitionHandlers() {
-            if (!recognition) return;
-            recognition.lang = getSelectedLangCode(); 
-
-            recognition.onstart = () => {
-                isListening = true; 
-                listeningText.textContent = getStrings().LISTENING;
-                listeningIndicator.classList.remove('hidden');
-            };
-
-            recognition.onend = () => {
-                isListening = false; 
-                if (gameState !== 'SEARCHING_OBJECT') {
-                    listeningIndicator.classList.add('hidden');
-                }
-                isIntentionalStop = false; 
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                console.log('Result:', transcript);
-                checkGuess(transcript); 
-            };
-            
-            recognition.onerror = (event) => {
-                isListening = false; 
-                if (gameState !== 'SEARCHING_OBJECT') {
-                     listeningIndicator.classList.add('hidden');
-                }
-                
-                if (event.error !== 'aborted' && event.error !== 'no-speech') {
-                    console.error('Speech recognition error:', event.error); 
-                }
-
-                if (['not-allowed', 'network'].includes(event.error)) {
-                    stopDetection();
-                    setMainStatusMessage(`Error: ${event.error}. Stopping game.`, 5000);
-                }
-            };
-        }
-
-        function stopListening() {
-            if (recognition && isListening) {
-                isIntentionalStop = true; 
-                recognition.abort(); 
-                isListening = false;
-                if (gameState !== 'SEARCHING_OBJECT') {
-                     listeningIndicator.classList.add('hidden');
-                }
-            }
-        }
-
-        function startListening() {
-            if (!recognition) return;
-            if (isListening) return;
-            
-            isListening = true;
-            isIntentionalStop = false; 
-
-            try {
-                recognition.lang = getSelectedLangCode(); 
-                recognition.start();
-            } catch (error) {
-                if (error.name === 'InvalidStateError' && (error.message.includes('already started') || error.message.includes('busy'))) {
-                    recognition.abort(); 
-                    isListening = false; 
-                    setTimeout(startListening, 500);
-                } else {
-                    console.error("Error starting speech recognition:", error);
-                    isListening = false;
-                }
-            }
-        }
-        
-        // --- GAME FLOW FUNCTIONS ---
-        
-        function startDetectionLoop(resetAttempts = false) {
-             // Hentikan aktivitas sebelumnya
-            stopListening();
-            stopCountdown();
-            stopDetectionLoop();
-            hintBoxContainer.classList.add('hidden'); // Pastikan tersembunyi
-
-            if (resetAttempts) {
-                attemptsLeft = MAX_ATTEMPTS;
-                updateAttemptTrackers();
-            }
-
-            gameState = 'SEARCHING_OBJECT';
-            updateUI(); 
-            
-            // Panggil API segera dan set interval
-            fetchObjectDetection(); 
-            detectionIntervalId = setInterval(fetchObjectDetection, DETECTION_INTERVAL);
-        }
-        
-        function stopDetectionLoop() {
-            if (detectionIntervalId) {
-                clearInterval(detectionIntervalId);
-                detectionIntervalId = null;
-            }
-            if (gameState === 'SEARCHING_OBJECT') {
-                 listeningIndicator.classList.add('hidden');
-            }
-        }
-
-        function toggleDetection() {
-            if (gameState === 'IDLE_WAITING_START' || gameState === 'FINISHED') {
-                // Mulai permainan
-                currentScore = 0;
-                updateScoreDisplay();
-                
-                startDetectionLoop(true); // Reset attempts dan mulai loop deteksi
-
-            } else {
-                // Hentikan permainan
-                stopDetection();
-            }
-        }
-        
-        function stopDetection() {
-            // Hentikan Pengenalan Suara, Timer, dan Interval Deteksi
-            stopListening();
-            stopCountdown();
-            stopDetectionLoop();
-
-            // Reset Status Game
-            gameState = 'IDLE_WAITING_START'; 
-            currentObjectData = null;
-            attemptsLeft = MAX_ATTEMPTS;
-            revealedLetters = []; 
-            hintBoxContainer.classList.add('hidden'); // Sembunyikan petunjuk
-            updateUI(); 
-        }
-
-        function initApp() {
-            const strings = getStrings();
-             if (!('speechSynthesis' in window) || !('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                console.error('Browser does not support the necessary APIs for this game.');
-                document.getElementById('toggle-detection-button').disabled = true; 
-                
-                const loadingText = document.getElementById('loading-text');
-                loadingText.textContent = "Browser Anda tidak mendukung API yang diperlukan. Game tidak dapat dimuat.";
-                const spinner = document.querySelector('#loading-overlay svg');
-                if (spinner) spinner.classList.add('hidden');
-                
-                setTimeout(() => {
-                    loadingOverlay.style.opacity = '0';
-                    loadingOverlay.addEventListener('transitionend', () => {
-                        loadingOverlay.classList.add('hidden');
-                    }, { once: true });
-                }, 4000); 
-                
-                return;
-            }
-            
-            initSpeech();
-            
-            fillLanguageDropdown();
-            languageSelect.addEventListener('change', () => {
-                // Atur ulang pengenalan suara saat bahasa berubah
-                setupRecognitionHandlers(); 
-                updateUI();
-            }); 
-            updateUI();
-            
-            startCamera();
-        }
-
-        window.onload = initApp;
-
-    </script>
+    // ================== INIT ==================
+    updateEnergy(0);
+    resetAttempts();
+  </script>
 </body>
 </html>
